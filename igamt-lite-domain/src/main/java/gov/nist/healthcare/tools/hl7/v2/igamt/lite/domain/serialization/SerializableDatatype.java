@@ -72,7 +72,7 @@ public class SerializableDatatype extends SerializableSection {
         if (this.datatype != null) {
             try {
             	Element datatypeMetadata = super.createMetadataElement(datatype);
-            	if(datatypeMetadata!=null){
+            	if (datatypeMetadata!=null) {
             		datatypeElement.appendChild(datatypeMetadata);
             	}
             	datatypeElement.addAttribute(new Attribute("ID", datatype.getId() + ""));
@@ -107,15 +107,27 @@ public class SerializableDatatype extends SerializableSection {
                         datatypeElement.appendChild(commentListElement);
                     }
                 }
-                if (datatype.getComponents() != null) {
-                    for (int i = 0; i < datatype.getComponents().size(); i++) {
-                        Component component = datatype.getComponents().get(i);
+                
+                if(datatype.getComponents().isEmpty()){
+                	   datatypeElement
+                       .addAttribute(new Attribute("primitive","true"));
+                }else{
+             	   datatypeElement
+                   .addAttribute(new Attribute("primitive","false"));
+                }
+     
+              if ( !componentDatatypeMap.isEmpty()) {
+                    for (Component component: componentDatatypeMap.keySet()) {
+                    	
+                        
+                        if(componentDatatypeMap.containsKey(component)){
+                        	
                         try {
                             Element componentElement = new Element("Component");
                             componentElement
                                 .addAttribute(new Attribute("Name", component.getName()));
                             componentElement
-                                .addAttribute(new Attribute("Usage", getFullUsage(datatype, i)));
+                                .addAttribute(new Attribute("Usage", getFullUsage(datatype, component)));
                             boolean isComplex = false;
                             if (component.getDatatype() != null) {
                                 Datatype datatype = componentDatatypeMap.get(component);
@@ -196,15 +208,16 @@ public class SerializableDatatype extends SerializableSection {
                                 .addAttribute(new Attribute("complex", String.valueOf(isComplex)));
                             datatypeElement.appendChild(componentElement);
                         } catch (Exception e){
-                            throw new DatatypeComponentSerializationException(e,i);
+                            throw new DatatypeComponentSerializationException(e,component.getPosition());
                         }
+                     }
                     }
-                    if (datatype.getComponents().size() == 0) {
-                        Element componentElement = new Element("Component");
-                        componentElement.addAttribute(new Attribute("Name", datatype.getName()));
-                        componentElement.addAttribute(new Attribute("Position", "1"));
-                        datatypeElement.appendChild(componentElement);
-                    }
+//                    if (datatype.getComponents().size() == 0) {
+//                        Element componentElement = new Element("Component");
+//                        componentElement.addAttribute(new Attribute("Name", datatype.getName()));
+//                        componentElement.addAttribute(new Attribute("Position", "1"));
+//                        datatypeElement.appendChild(componentElement);
+//                    }
 
                     if ((datatype != null && (!this.defPreText.isEmpty()) || !this.defPostText
                         .isEmpty())) {
@@ -232,13 +245,13 @@ public class SerializableDatatype extends SerializableSection {
         return sectionElement;
     }
 
-    private String getFullUsage(Datatype datatype, int i) {
-        List<Predicate> predicates = super.findPredicate(i + 1, datatype.getPredicates());
+    private String getFullUsage(Datatype datatype, Component c ) {
+        List<Predicate> predicates = super.findPredicate(c.getPosition(), datatype.getPredicates());
         if (predicates == null || predicates.isEmpty()) {
-            return datatype.getComponents().get(i).getUsage().toString();
+            return c.getUsage().toString();
         } else {
             Predicate predicate = predicates.get(0);
-            return datatype.getComponents().get(i).getUsage().toString() + "(" + predicate.getTrueUsage() + "/" + predicate.getFalseUsage()
+            return c.getUsage().toString() + "(" + predicate.getTrueUsage() + "/" + predicate.getFalseUsage()
                 + ")";
         }
     }

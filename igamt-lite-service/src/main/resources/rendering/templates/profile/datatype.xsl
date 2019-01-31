@@ -35,7 +35,7 @@
         <xsl:if test="@Name = 'DTM'">
             <xsl:apply-templates select="DateTimeDatatype"/>
         </xsl:if>
-        <xsl:if test="@Name != 'DTM'">
+        <xsl:if test="@Name != 'DTM' and @primitive !='true'">
             <xsl:element name="span">
                 <xsl:element name="span">
                     <xsl:element name="b">
